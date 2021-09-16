@@ -2,8 +2,8 @@ use crate::instructions;
 use crate::instructions::{Instruction};
 use crate::chip::*;
 use crate::display::Sprite;
-
 use rand::Rng;
+
 
 pub fn cycle(chip: &mut Chip8) {
 
@@ -11,8 +11,10 @@ pub fn cycle(chip: &mut Chip8) {
     let upper = chip.memory[chip.pc as usize];
     let lower = chip.memory[(chip.pc + 1) as usize];
 
+
     let instr = instructions::parse(upper, lower);
 
+    println!("{:?}", instr);
 
 
     match execute(instr, chip) {
@@ -31,7 +33,6 @@ enum ExecuteRes {
 }
 
 fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
-
     use ExecuteRes::*;
     let mut new_pc = chip.pc + 2;
     match instr {

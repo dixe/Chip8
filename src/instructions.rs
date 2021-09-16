@@ -3,8 +3,6 @@ type Register = u8;
 type Key = u8;
 
 pub fn parse(upper: u8, lower: u8) -> Instruction {
-    println!("Upper ={:#04x}", upper);
-    println!("Lower ={:#04x}", lower & 0x0F);
 
     let start = upper >> 4;
 

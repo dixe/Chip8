@@ -27,9 +27,6 @@ impl Chip8 {
 
 
         // initialize the char sprites, store them from 0 to 80 (5*16)
-
-        res.memory
-
         /* Standard 4x5 font */
         /* '0' */ res.memory[0] = 0xF0; res.memory[0 + 1] = 0x90; res.memory[0 + 2] = 0x90; res.memory[0 + 3] = 0x90; res.memory[0 + 4] = 0xF0;
         /* '1' */ res.memory[5] = 0x20; res.memory[5 + 1] = 0x60; res.memory[5 + 2] = 0x20; res.memory[5 + 3] = 0x20; res.memory[5 + 4] = 0x70;
