@@ -2,6 +2,11 @@ use std::env;
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
+use sdl2;
+use sdl2::pixels::Color;
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
+use std::time::Duration;
 
 
 mod chip;
@@ -24,10 +29,7 @@ fn main() -> io::Result<()> {
 
 
     let path = &args[1];
-
-
     let mut buffer = [0; 0xDFF];
-
 
     let mut f = File::open(path)?;
 
@@ -35,18 +37,14 @@ fn main() -> io::Result<()> {
 
     let program = chip::Program::Binary(buffer);
 
-    let mut chip = chip::Chip8::new();
 
-    chip.load_program(&program);
+    let mut emulator = emulator::Emulator::new();
 
-    for _ in 0..21 {
-        emulator::cycle(&mut chip);
-    }
+    emulator.load_program(&program);
 
-    // show screen some how
+
+    emulator.run();
 
     Ok(())
-
-
 
 }

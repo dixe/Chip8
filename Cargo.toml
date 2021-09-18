@@ -9,5 +9,9 @@ edition = "2018"
 [dependencies]
 rand = "0.8.4"
 
+[dependencies.sdl2]
+version = "0.34.3"
+features = ["bundled", "static-link"]
+
 [dev-dependencies]
 rstest = "0.11.0"

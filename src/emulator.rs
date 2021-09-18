@@ -3,9 +3,91 @@ use crate::instructions::{Instruction};
 use crate::chip::*;
 use crate::display::Sprite;
 use rand::Rng;
+use sdl2::{Sdl};
+use sdl2::pixels::Color;
+use sdl2::rect::Rect;
+
+pub struct Emulator {
+    chip: Chip8,
+    sdl_context: Sdl,
+
+    canvas: sdl2::render::Canvas<sdl2::video::Window>,
+}
+
+impl Emulator {
+    pub fn new() -> Self {
+
+        let sdl_context = sdl2::init().unwrap();
+        let video_subsystem = sdl_context.video().unwrap();
+
+        let width = 640;
+        let height = 320 ;
+        let window = video_subsystem.window("Chip8", width, height)
+            .position_centered()
+            .build()
+            .unwrap();
+
+        let mut canvas = window.into_canvas().build().unwrap();
+
+        Self {
+            chip: Chip8::new(),
+            sdl_context,
+            canvas,
+        }
+    }
+
+    pub fn load_program(&mut self, program: &Program) {
+
+        self.chip.load_program(program);
+
+    }
+
+    pub fn run(&mut self) {
+
+        // show windows
+        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
+        self.canvas.clear();
+        self.canvas.present();
+
+        let mut event_pump = self.sdl_context.event_pump().unwrap();
+
+        loop {
+            // run a cycle
+            cycle(&mut self.chip);
 
 
-pub fn cycle(chip: &mut Chip8) {
+
+
+            // update keyboard
+
+            for event in event_pump.poll_iter() {
+                use sdl2::event::Event;
+                match event {
+                    Event::Quit {..} => return,
+                    _ => {}
+                }
+            }
+
+
+            // update display
+            self.canvas.clear();
+            // UPDATE THE DISPLAY
+            // set on "pixel" color
+            self.canvas.set_draw_color(Color::RGB(255, 210, 0));
+
+            // TODO: Loop over over all "pixel" and draw 1 using this, but with offsets
+            self.canvas.fill_rect(Rect::new(0, 0, 10, 10));
+
+            // set default to black
+            self.canvas.set_draw_color(Color::RGB(0, 0, 0));
+            self.canvas.present();
+        }
+    }
+}
+
+
+
+fn cycle(chip: &mut Chip8) {
 
 
     let upper = chip.memory[chip.pc as usize];
