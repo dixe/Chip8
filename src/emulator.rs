@@ -21,8 +21,9 @@ impl Emulator {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
-        let width = 640;
-        let height = 320 ;
+        // square pixel
+        let width = 832;  // 64 * 13
+        let height = 416; // 32 * 13
         let window = video_subsystem.window("Chip8", width, height)
             .position_centered()
             .build()
@@ -72,7 +73,7 @@ impl Emulator {
             // update display
             self.update_display();
 
-            // update delay timer
+            // update timers (delay and sound)
             let elapsed = last_instant.elapsed();
 
             if elapsed.as_millis() > rate_millis {
@@ -81,9 +82,7 @@ impl Emulator {
             }
 
 
-            // update sound timer
-
-
+            // if sound is 1 play a tone we specify
 
 
         }
@@ -99,11 +98,18 @@ impl Emulator {
 
 
         for (i,pixel) in self.chip.display.read_pixels().iter().enumerate() {
+
+
             if *pixel {
                 let x = (i % 64) as i32;
                 let y = (i / 64) as i32;
-                self.canvas.fill_rect(Rect::new(x * 10, y*10, 10, 10));
 
+                //calc pixel size from canvas resolution
+
+                let width = (self.canvas.window().size().0  / 64) as i32;
+                let height = (self.canvas.window().size().1 / 32)  as i32;
+
+                self.canvas.fill_rect(Rect::new(x * width, y * height, width as u32, height as u32));
             }
         }
 
