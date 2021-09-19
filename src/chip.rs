@@ -73,17 +73,19 @@ impl Program {
 
         match self {
             Program::Binary(ref data) => data.to_vec(),
-            Program::Text(text) => {
+            Program::Text(t) => {
+
+                let mut text = t.clone().to_lowercase();
+                // remove lines starting with '//' that is comment
+                text = text.split('\n').filter(|line| !line.starts_with("//")).collect();
 
                 // replace whitespace with nothing
+                text.retain(|c| (c  >= 'a'  && c <= 'f')
+                            || (c >= '0' && c <= '9'));
 
-                // replace 0x with nothing
-                let mut t = text.clone().to_lowercase();
+                println!("{:?}", text);
 
-                t.retain(|c| (c  >= 'a'  && c <= 'f')
-                         || (c >= '0' && c <= '9'));
-
-                let t_values: Vec<u8> = t.chars().map(|c| {
+                let t_values: Vec<u8> = text.chars().map(|c| {
                     if c  >= 'a'  && c <= 'f' {
                         return (c as u8) - 87;
                     }
@@ -91,15 +93,12 @@ impl Program {
                     (c as u8) - 48
                 }).collect();
 
-
-                println!("{:?}", t_values);
-
                 let mut res = Vec::new();
                 for i in (0..t_values.len()).step_by(2) {
 
                     let upper = t_values[i] << 4;
                     let val = upper + t_values[i + 1];
-                    println!("{} + {} = {:?}", t_values[i], t_values[i+1], val);
+
                     res.push(val);
                 }
                 res
@@ -120,6 +119,19 @@ mod tests {
     #[test]
     fn program_from_text() {
         let input = "60FF F015 6000 6900 6E00 6000 3001 3000 1392 7E01 6001 4001 4000 1392 7E01 6101 6200 5020 5010 1392 7E01";
+
+        let program = Program::Text(input.to_string());
+
+        let binary = program.get_binary_data();
+
+        let expected = [0x60, 0xFF, 0xF0, 0x15, 0x60, 0x00, 0x69, 0x00, 0x6E, 0x00, 0x60, 0x00, 0x30, 0x01, 0x30, 0x00, 0x13, 0x92, 0x7E, 0x01, 0x60, 0x01, 0x40, 0x01, 0x40, 0x00, 0x13, 0x92, 0x7E, 0x01, 0x61, 0x01, 0x62, 0x00, 0x50, 0x20, 0x50, 0x10, 0x13, 0x92, 0x7E, 0x01];
+
+        assert_eq!(binary, expected);
+    }
+
+    #[test]
+    fn program_from_text_comments() {
+        let input = "60FF F015 6000 6900 6E00 6000 3001\n//hello i am comment\n3000 1392 7E01 6001 4001 4000 1392 7E01 6101 6200 5020 5010 1392 7E01";
 
         let program = Program::Text(input.to_string());
 

@@ -45,7 +45,7 @@ pub fn parse(upper: u8, lower: u8) -> Instruction {
             _ => panic!("Not a valid instruciton {:#02x}, {:#02x}", upper, lower)
         },
 
-        0xF => match lower & 0x0F {
+        0xF => match lower {
             0x07 => LoadDelay(to_reg_upper(upper)),
             0x0A => WaitKeyPress(to_reg_upper(upper)),
             0x15 => SetDelay(to_reg_upper(upper)),

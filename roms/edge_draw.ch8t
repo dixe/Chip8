@@ -1,0 +1,15 @@
+// store 1 at 0x400 this will be our sprite
+
+// Set i to 400
+A400
+// add 0xFF to v0
+70FF
+// set i to v0 (1)
+f055
+// set v0(x) = 0 and v1(y) = 5
+6000
+6105
+//draw 0,0 sprite (pixel)
+d011
+// wait for keypress then panic
+f00a

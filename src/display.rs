@@ -24,9 +24,10 @@ impl Display {
         let mut flipped = false;
         for row in 0..(sprite.length as usize) {
             for (col, pixel) in sprite.data[row].bits().iter().enumerate() {
+
                 let x = (sprite.x + col) % 64;
                 let y = (sprite.y + row) % 64;
-
+                //println!("({}, {}) = {}", x,y, self.pixels[y * 64 + x] ^ *pixel);
                 let old_pixel = self.pixels[y * 64 + x] ;
                 self.pixels[y * 64 + x] ^= *pixel;
 
@@ -36,6 +37,11 @@ impl Display {
         }
 
         flipped as u8
+    }
+
+
+    pub fn read_pixels(&self) ->  &[bool; 64*32] {
+        &self.pixels
     }
 }
 

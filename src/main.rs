@@ -1,7 +1,7 @@
 use std::env;
 use std::io;
 use std::io::prelude::*;
-use std::fs::File;
+use std::fs::{self, File};
 use sdl2;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
@@ -28,14 +28,13 @@ fn main() -> io::Result<()> {
     }
 
 
-    let path = &args[1];
-    let mut buffer = [0; 0xDFF];
-
-    let mut f = File::open(path)?;
-
-    f.read(&mut buffer)?;
-
-    let program = chip::Program::Binary(buffer);
+    let program;
+    if args[1].ends_with(".ch8t") {
+        program = load_program_text(&args)?;
+    }
+    else{
+        program = load_program_binary(&args)?;
+    }
 
 
     let mut emulator = emulator::Emulator::new();
@@ -47,4 +46,27 @@ fn main() -> io::Result<()> {
 
     Ok(())
 
+}
+
+fn load_program_text(args: &Vec<String>) -> Result<chip::Program, io::Error> {
+    // if ends with chip8t load as text, otherwise binary
+    let path = &args[1];
+
+    let program_text = fs::read_to_string(path)?;
+
+
+    Ok(chip::Program::Text(program_text))
+}
+
+
+fn load_program_binary(args: &Vec<String>) -> Result<chip::Program, io::Error> {
+    // if ends with chip8t load as text, otherwise binary
+    let path = &args[1];
+    let mut buffer = [0; 0xDFF];
+
+    let mut f = File::open(path)?;
+
+    f.read(&mut buffer)?;
+
+    Ok(chip::Program::Binary(buffer))
 }

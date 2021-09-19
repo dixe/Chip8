@@ -55,9 +55,6 @@ impl Emulator {
             // run a cycle
             cycle(&mut self.chip);
 
-
-
-
             // update keyboard
 
             for event in event_pump.poll_iter() {
@@ -70,18 +67,32 @@ impl Emulator {
 
 
             // update display
-            self.canvas.clear();
-            // UPDATE THE DISPLAY
-            // set on "pixel" color
-            self.canvas.set_draw_color(Color::RGB(255, 210, 0));
+            self.update_display();
 
-            // TODO: Loop over over all "pixel" and draw 1 using this, but with offsets
-            self.canvas.fill_rect(Rect::new(0, 0, 10, 10));
-
-            // set default to black
-            self.canvas.set_draw_color(Color::RGB(0, 0, 0));
-            self.canvas.present();
         }
+    }
+
+
+    fn update_display(&mut self) {
+
+        self.canvas.clear();
+        // UPDATE THE DISPLAY
+        // set on "pixel" color
+        self.canvas.set_draw_color(Color::RGB(255, 210, 0));
+
+
+        for (i,pixel) in self.chip.display.read_pixels().iter().enumerate() {
+            if *pixel {
+                let x = (i % 64) as i32;
+                let y = (i / 64) as i32;
+                self.canvas.fill_rect(Rect::new(x * 10, y*10, 10, 10));
+
+            }
+        }
+
+        // set default to black
+        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
+        self.canvas.present();
     }
 }
 
@@ -95,9 +106,6 @@ fn cycle(chip: &mut Chip8) {
 
 
     let instr = instructions::parse(upper, lower);
-
-    println!("{:?}", instr);
-
 
     match execute(instr, chip) {
         ExecuteRes::SetPc(addr) => {
@@ -119,6 +127,7 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
     let mut new_pc = chip.pc + 2;
     match instr {
         Instruction::Cls => {
+            println!("Clear ");
             chip.display.clear();
             SetPc(new_pc)
         },
@@ -326,6 +335,7 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
         Instruction::Draw(reg_x, reg_y, n) => {
             // get the data and send that to the display to draw
 
+
             let x = chip.registers.get_value(reg_x) as usize;
             let y = chip.registers.get_value(reg_y) as usize;
 
@@ -336,7 +346,7 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
                 y
             };
 
-
+            println!("Draw inst x,y,n,i,*i: {}, {}, {}, {}, {} ", x, y, n, chip.registers.get_i(), chip.memory[chip.registers.get_i() as usize] );
             for i in 0..(n as usize) {
                 sprite.data[i] = chip.memory[chip.registers.get_i() as usize + i];
             }
@@ -403,7 +413,6 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
 
         Instruction::SetSpriteAddr(reg_x) => {
             let x = chip.registers.get_value(reg_x);
-
             chip.registers.set_i((x*5) as u16);
 
             SetPc(new_pc)
