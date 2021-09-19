@@ -34,7 +34,7 @@ pub fn parse(upper: u8, lower: u8) -> Instruction {
             _ => panic!("Not a valid instruciton {:#01x}, {:#01x}", upper, lower)
         },
 
-        9 => SkipNotEqReg(to_reg_upper(upper), to_reg_lower(lower)), // TODO: Not 100% corect we should also check that the lower 4 bits of lower is 00
+        9 => SkipNotEqReg(to_reg_upper(upper), to_reg_lower(lower)), // TODO: Not 100% corect we match 9XY_ and not only 9XY0, we should also check that the lower 4 bits of lower is
         0xA => LoadAddr(to_address(upper, lower)),
         0xB => JumpOffset(to_address(upper, lower)),
         0xC => Rand(to_reg_upper(upper), lower),

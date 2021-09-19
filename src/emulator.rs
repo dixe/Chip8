@@ -69,6 +69,10 @@ impl Emulator {
             // update display
             self.update_display();
 
+            // update delay timer
+
+
+
         }
     }
 
@@ -127,7 +131,6 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
     let mut new_pc = chip.pc + 2;
     match instr {
         Instruction::Cls => {
-            println!("Clear ");
             chip.display.clear();
             SetPc(new_pc)
         },
@@ -184,8 +187,9 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
             SetPc(new_pc)
         },
         Instruction::AddConst(reg, byte) => {
-            let cur = chip.registers.get_value(reg);
-            chip.registers.set_value(reg, byte + cur);
+            let cur = chip.registers.get_value(reg) as u16;
+            let res = (byte as u16 + cur) as u8;
+            chip.registers.set_value(reg, res);
             SetPc(new_pc)
         },
 
@@ -299,7 +303,7 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
         },
 
         Instruction::SkipNotEqReg(reg_x, reg_y) => {
-            let x = chip.registers.get_value(reg_y);
+            let x = chip.registers.get_value(reg_x);
             let y = chip.registers.get_value(reg_y);
 
             if x != y {
@@ -346,7 +350,6 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
                 y
             };
 
-            println!("Draw inst x,y,n,i,*i: {}, {}, {}, {}, {} ", x, y, n, chip.registers.get_i(), chip.memory[chip.registers.get_i() as usize] );
             for i in 0..(n as usize) {
                 sprite.data[i] = chip.memory[chip.registers.get_i() as usize + i];
             }

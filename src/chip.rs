@@ -83,8 +83,6 @@ impl Program {
                 text.retain(|c| (c  >= 'a'  && c <= 'f')
                             || (c >= '0' && c <= '9'));
 
-                println!("{:?}", text);
-
                 let t_values: Vec<u8> = text.chars().map(|c| {
                     if c  >= 'a'  && c <= 'f' {
                         return (c as u8) - 87;
