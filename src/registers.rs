@@ -63,6 +63,15 @@ impl Registers {
         self.sound = val;
     }
 
+    pub fn tick(&mut self) {
+        if self.sound > 0 {
+            self.sound -= 1;
+        }
+
+        if self.delay > 0 {
+            self.delay -= 1;
+        }
+    }
 
     pub fn bitwise(&mut self, reg_x: u8,
                    reg_y: u8,

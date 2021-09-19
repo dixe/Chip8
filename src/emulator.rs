@@ -6,6 +6,7 @@ use rand::Rng;
 use sdl2::{Sdl};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use std::time::{Duration, Instant};
 
 pub struct Emulator {
     chip: Chip8,
@@ -51,6 +52,8 @@ impl Emulator {
 
         let mut event_pump = self.sdl_context.event_pump().unwrap();
 
+        let mut last_instant = Instant::now();
+        let rate_millis = (1.0/60.0 * 1000.0) as u128;
         loop {
             // run a cycle
             cycle(&mut self.chip);
@@ -70,6 +73,16 @@ impl Emulator {
             self.update_display();
 
             // update delay timer
+            let elapsed = last_instant.elapsed();
+
+            if elapsed.as_millis() > rate_millis {
+                last_instant = Instant::now();
+                self.chip.registers.tick();
+            }
+
+
+            // update sound timer
+
 
 
 
