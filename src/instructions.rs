@@ -39,7 +39,7 @@ pub fn parse(upper: u8, lower: u8) -> Instruction {
         0xB => JumpOffset(to_address(upper, lower)),
         0xC => Rand(to_reg_upper(upper), lower),
         0xD => Draw(to_reg_upper(upper), to_reg_lower(lower), lower & 0x0F),
-        0xE => match lower & 0x0F {
+        0xE => match lower {
             0x9E => SkipOnKeyPressed(to_reg_upper(upper)),
             0xA1 => SkipKeyNotPressed(to_reg_upper(upper)),
             _ => panic!("Not a valid instruciton {:#02x}, {:#02x}", upper, lower)
