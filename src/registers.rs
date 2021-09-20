@@ -28,7 +28,7 @@ impl Registers {
 
     #[inline]
     pub fn increment_i(&mut self, val: u16) {
-        self.i = self.i + val;
+        self.i = (self.i + val) & 0xFFF;
     }
 
     #[inline]

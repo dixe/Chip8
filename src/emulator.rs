@@ -46,18 +46,16 @@ impl Emulator {
 
     pub fn run(&mut self) {
 
-        // show windows
-        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
-        self.canvas.clear();
-        self.canvas.present();
-
         let mut event_pump = self.sdl_context.event_pump().unwrap();
+
+        let mut draw_inst = Instant::now();
 
         let mut last_instant = Instant::now();
         let rate_millis = (1.0/60.0 * 1000.0) as u128;
+
         loop {
             // run a cycle
-            cycle(&mut self.chip);
+            let redraw = cycle(&mut self.chip);
 
             // update keyboard
 
@@ -65,21 +63,27 @@ impl Emulator {
                 use sdl2::event::Event;
                 match event {
                     Event::Quit {..} => return,
+                    Event::KeyDown { keycode: Some(code), ..} => {
+                        self.chip.keyboard.check_key(code, true);
+                    }
+                    Event::KeyUp { keycode: Some(code), ..} => {
+                        self.chip.keyboard.check_key(code, false);
+                    },
                     _ => {}
-                }
+                };
             }
 
-
-            // update display
             self.update_display();
 
             // update timers (delay and sound)
             let elapsed = last_instant.elapsed();
 
             if elapsed.as_millis() > rate_millis {
+
                 last_instant = Instant::now();
                 self.chip.registers.tick();
             }
+
 
 
             // if sound is 1 play a tone we specify
@@ -121,7 +125,7 @@ impl Emulator {
 
 
 
-fn cycle(chip: &mut Chip8) {
+fn cycle(chip: &mut Chip8) -> bool {
 
 
     let upper = chip.memory[chip.pc as usize];
@@ -130,12 +134,16 @@ fn cycle(chip: &mut Chip8) {
 
     let instr = instructions::parse(upper, lower);
 
-    match execute(instr, chip) {
+    let mut redraw = false;
+
+    match execute(instr, chip, &mut redraw) {
         ExecuteRes::SetPc(addr) => {
             chip.pc = addr;
         },
         ExecuteRes::Wait => {}
     };
+
+    redraw
 
 }
 
@@ -145,11 +153,13 @@ enum ExecuteRes {
     Wait
 }
 
-fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
+
+fn execute(instr: Instruction, chip: &mut Chip8, redraw: &mut bool ) -> ExecuteRes {
     use ExecuteRes::*;
     let mut new_pc = chip.pc + 2;
     match instr {
         Instruction::Cls => {
+            *redraw = true;
             chip.display.clear();
             SetPc(new_pc)
         },
@@ -208,6 +218,7 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
         Instruction::AddConst(reg, byte) => {
             let cur = chip.registers.get_value(reg) as u16;
             let res = (byte as u16 + cur) as u8;
+            //println!("cur={:?} byte ={}, res={}", cur, byte, res);
             chip.registers.set_value(reg, res);
             SetPc(new_pc)
         },
@@ -369,9 +380,14 @@ fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes{
                 y
             };
 
+
             for i in 0..(n as usize) {
-                sprite.data[i] = chip.memory[chip.registers.get_i() as usize + i];
+                //println!("{:?}, {}, {}, {}",reg_x, reg_y, n, chip.registers.get_i() as usize + i);
+                let addr = (chip.registers.get_i() as usize + i);
+                sprite.data[i] = chip.memory[addr];
             }
+
+            *redraw = true;
 
             let vf = chip.display.draw_sprite(&sprite);
 

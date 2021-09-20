@@ -73,7 +73,11 @@ fn to_reg_lower(lower: u8) -> Register {
 fn to_address( upper: u8, lower: u8) -> Addr {
     // TODO: maybe add a check to see if address is over 4096
 
-    (((upper & 0x0F) as u16) << 8) + (lower as u16)
+
+    let res = (((upper & 0x0F) as u16) << 8) + (lower as u16);
+
+    //println!("{:#x}, {:#x}: {:#x}", upper, lower, res);
+    res
 }
 
 

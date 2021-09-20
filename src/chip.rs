@@ -91,6 +91,7 @@ impl Program {
                     (c as u8) - 48
                 }).collect();
 
+                println!("{:?}", t_values);
                 let mut res = Vec::new();
                 for i in (0..t_values.len()).step_by(2) {
 

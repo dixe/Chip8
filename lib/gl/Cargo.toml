@@ -1,5 +1,5 @@
 [package]
-name = "rust-chip-8"
+name = "gl"
 version = "0.1.0"
 authors = ["Nikolaj Østergaard <niko.fris@gmail.com>"]
 edition = "2018"
@@ -7,13 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = "0.8.4"
-
-[dependencies.sdl2]
-version = "0.34.3"
-features = ["bundled", "static-link"]
-gl = { path = "../lib/gl" }
 
 
-[dev-dependencies]
-rstest = "0.11.0"
+[build-dependencies]
+gl_generator = "0.14.0"
+
+[features]
+debug = []
