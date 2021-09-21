@@ -61,10 +61,8 @@ impl Emulator {
             let elapsed_clock = clock_last_instant.elapsed();
             if elapsed_clock.as_millis() > clock_rate_millis {
                 clock_last_instant = Instant::now();
-                let redraw = cycle(&mut self.chip);
-                if redraw {
-                    self.update_display();
-                }
+                cycle(&mut self.chip);
+                self.update_display();
             }
 
             // update keyboard
@@ -137,7 +135,7 @@ impl Emulator {
 
 
 
-fn cycle(chip: &mut Chip8) -> bool {
+fn cycle(chip: &mut Chip8) {
 
 
     let upper = chip.memory[chip.pc as usize];
@@ -146,16 +144,12 @@ fn cycle(chip: &mut Chip8) -> bool {
 
     let instr = instructions::parse(upper, lower);
 
-    let mut redraw = false;
-
-    match execute(instr, chip, &mut redraw) {
+    match execute(instr, chip) {
         ExecuteRes::SetPc(addr) => {
             chip.pc = addr;
         },
         ExecuteRes::Wait => {}
     };
-
-    redraw
 
 }
 
@@ -166,12 +160,11 @@ enum ExecuteRes {
 }
 
 
-fn execute(instr: Instruction, chip: &mut Chip8, redraw: &mut bool ) -> ExecuteRes {
+fn execute(instr: Instruction, chip: &mut Chip8) -> ExecuteRes {
     use ExecuteRes::*;
     let mut new_pc = chip.pc + 2;
     match instr {
         Instruction::Cls => {
-            *redraw = true;
             chip.display.clear();
             SetPc(new_pc)
         },
@@ -398,8 +391,6 @@ fn execute(instr: Instruction, chip: &mut Chip8, redraw: &mut bool ) -> ExecuteR
                 let addr = (chip.registers.get_i() as usize + i);
                 sprite.data[i] = chip.memory[addr];
             }
-
-            *redraw = true;
 
             let vf = chip.display.draw_sprite(&sprite);
 
