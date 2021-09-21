@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 pub struct Emulator {
     chip: Chip8,
     sdl_context: Sdl,
-
+    frequency: u32,
     canvas: sdl2::render::Canvas<sdl2::video::Window>,
 }
 
@@ -35,6 +35,7 @@ impl Emulator {
             chip: Chip8::new(),
             sdl_context,
             canvas,
+            frequency: 800,
         }
     }
 
@@ -48,14 +49,23 @@ impl Emulator {
 
         let mut event_pump = self.sdl_context.event_pump().unwrap();
 
-        let mut draw_inst = Instant::now();
+        let mut clock_last_instant = Instant::now();
+        let clock_rate_millis =  (1.0/(self.frequency as f64) * 1000.0) as u128;
 
-        let mut last_instant = Instant::now();
-        let rate_millis = (1.0/60.0 * 1000.0) as u128;
+        let mut delay_sound_last_instant = Instant::now();
+        let delay_sound_rate_millis = (1.0/60.0 * 1000.0) as u128;
 
         loop {
-            // run a cycle
-            let redraw = cycle(&mut self.chip);
+
+            // run a cycle and update display
+            let elapsed_clock = clock_last_instant.elapsed();
+            if elapsed_clock.as_millis() > clock_rate_millis {
+                clock_last_instant = Instant::now();
+                let redraw = cycle(&mut self.chip);
+                if redraw {
+                    self.update_display();
+                }
+            }
 
             // update keyboard
 
@@ -73,21 +83,17 @@ impl Emulator {
                 };
             }
 
-            self.update_display();
+
 
             // update timers (delay and sound)
-            let elapsed = last_instant.elapsed();
+            let elapsed_delay_sound = delay_sound_last_instant.elapsed();
 
-            if elapsed.as_millis() > rate_millis {
-
-                last_instant = Instant::now();
+            if elapsed_delay_sound.as_millis() > delay_sound_rate_millis {
+                delay_sound_last_instant = Instant::now();
                 self.chip.registers.tick();
             }
 
-
-
             // if sound is 1 play a tone we specify
-
 
         }
     }
@@ -95,30 +101,36 @@ impl Emulator {
 
     fn update_display(&mut self) {
 
-        self.canvas.clear();
+
         // UPDATE THE DISPLAY
         // set on "pixel" color
         self.canvas.set_draw_color(Color::RGB(255, 210, 0));
 
 
+
         for (i,pixel) in self.chip.display.read_pixels().iter().enumerate() {
 
-
             if *pixel {
-                let x = (i % 64) as i32;
-                let y = (i / 64) as i32;
-
-                //calc pixel size from canvas resolution
-
-                let width = (self.canvas.window().size().0  / 64) as i32;
-                let height = (self.canvas.window().size().1 / 32)  as i32;
-
-                self.canvas.fill_rect(Rect::new(x * width, y * height, width as u32, height as u32));
+                self.canvas.set_draw_color(Color::RGB(255, 210, 0));
             }
+            else {
+                self.canvas.set_draw_color(Color::RGB(0, 0, 0));
+            }
+
+            let x = (i % 64) as i32;
+            let y = (i / 64) as i32;
+
+            //calc pixel size from canvas resolution
+
+            let width = (self.canvas.window().size().0  / 64) as i32;
+            let height = (self.canvas.window().size().1 / 32)  as i32;
+
+            self.canvas.fill_rect(Rect::new(x * width, y * height, width as u32, height as u32));
+
         }
 
         // set default to black
-        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
+
         self.canvas.present();
     }
 }
@@ -164,8 +176,8 @@ fn execute(instr: Instruction, chip: &mut Chip8, redraw: &mut bool ) -> ExecuteR
             SetPc(new_pc)
         },
         Instruction::Ret => {
-            new_pc = chip.stack[chip.sp as usize];
             chip.sp -= 1;
+            new_pc = chip.stack[chip.sp as usize];
             SetPc(new_pc)
         },
         Instruction::Jump(addr) => {
@@ -173,9 +185,9 @@ fn execute(instr: Instruction, chip: &mut Chip8, redraw: &mut bool ) -> ExecuteR
             SetPc(new_pc)
         },
         Instruction::Call(addr) => {
-            chip.sp += 1;
-            chip.stack[chip.sp as usize] = chip.pc;
 
+            chip.stack[chip.sp as usize] = new_pc;
+            chip.sp += 1;
             new_pc = addr;
             SetPc(new_pc)
         },
@@ -224,8 +236,8 @@ fn execute(instr: Instruction, chip: &mut Chip8, redraw: &mut bool ) -> ExecuteR
         },
 
         Instruction::LoadReg(reg_x, reg_y) => {
-            let x_val = chip.registers.get_value(reg_x);
-            chip.registers.set_value(reg_y, x_val);
+            let y_val = chip.registers.get_value(reg_y);
+            chip.registers.set_value(reg_x, y_val);
             SetPc(new_pc)
         },
 

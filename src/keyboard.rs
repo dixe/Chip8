@@ -12,18 +12,18 @@ impl Keyboard {
         Self {
             data: [false; 16],
             mapping: [
-                (Keycode::Num0, 0),
-                (Keycode::Num1, 1),
-                (Keycode::Num2, 2),
-                (Keycode::Num3, 3),
+                (Keycode::Kp0, 0),
+                (Keycode::Kp1, 1),
+                (Keycode::Kp2, 2),
+                (Keycode::Kp3, 3),
 
-                (Keycode::Num4, 4),
-                (Keycode::Num5, 5),
-                (Keycode::Num6, 6),
-                (Keycode::Num7, 7),
+                (Keycode::Kp4, 4),
+                (Keycode::Kp5, 5),
+                (Keycode::Kp6, 6),
+                (Keycode::Kp7, 7),
 
-                (Keycode::Num8, 8),
-                (Keycode::Num9, 9),
+                (Keycode::Kp8, 8),
+                (Keycode::Kp9, 9),
                 (Keycode::A, 10),
                 (Keycode::B, 11),
 
@@ -51,7 +51,6 @@ impl Keyboard {
     }
 
     pub fn check_key(&mut self, code: Keycode, down: bool) {
-
         for (k,i) in self.mapping.iter() {
             if *k == code {
                 self.data[*i] = down;
